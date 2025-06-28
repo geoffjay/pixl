@@ -1,0 +1,5 @@
+# server ignores
+/server/target/
+
+# viewer ignores
+/viewer/target/

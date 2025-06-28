@@ -1,0 +1,38 @@
+[tasks.format]
+command = "echo"
+args = ["Formatting complete"]
+dependencies = [
+  { name = "format", path = "server/tasks.toml" },
+  { name = "format", path = "viewer/tasks.toml" },
+]
+
+[tasks.clean]
+command = "echo"
+args = ["Cleaning complete"]
+dependencies = [
+  { name = "clean", path = "server/tasks.toml" },
+  { name = "clean", path = "viewer/tasks.toml" },
+]
+
+[tasks.build]
+command = "echo"
+args = ["Building complete"]
+dependencies = [
+  { name = "build", path = "server/tasks.toml" },
+  { name = "build", path = "viewer/tasks.toml" },
+]
+
+[tasks.test]
+command = "echo"
+args = ["Testing complete"]
+dependencies = [
+  { name = "test", path = "server/tasks.toml" },
+  { name = "test", path = "viewer/tasks.toml" },
+]
+
+[tasks.full-build]
+dependencies = [
+    "format",
+    "build",
+    "test"
+]
