@@ -6,23 +6,19 @@ use poem::{
     listener::TcpListener,
     web::{
         sse::{Event, SSE},
-        Html,
+        Json,
     },
     Route, Server,
 };
+use serde_json::json;
 use tokio::time::Duration;
 
 #[handler]
-fn index() -> Html<&'static str> {
-    Html(
-        r#"
-    <script>
-    var eventSource = new EventSource('event');
-    eventSource.onmessage = function(event) {
-        document.write("<div>" + event.data + "</div>");
-    }
-    </script>
-    "#,
+fn index() -> Json<serde_json::Value> {
+    Json(
+        json!({
+            "message": "Hello, world!"
+        })
     )
 }
 

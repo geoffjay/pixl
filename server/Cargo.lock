@@ -690,6 +690,7 @@ dependencies = [
  "futures-util",
  "poem",
  "serde",
+ "serde_json",
  "tokio",
  "tokio-stream",
  "tracing-subscriber",
