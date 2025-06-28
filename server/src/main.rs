@@ -41,10 +41,8 @@ async fn main() -> Result<(), std::io::Error> {
     // Build routes
     let app = Route::new()
         .at("/", get(health_check))
-        .at("/path", get(path::get_path))
-        .at("/path", put(path::set_path))
-        .at("/books", get(books::list_books))
-        .at("/books", post(books::create_book))
+        .at("/path", get(path::get_path).put(path::set_path))
+        .at("/books", get(books::list_books).post(books::create_book))
         .at("/books/:filename", get(books::get_book))
         .at("/books/:filename/events", get(events::pixel_book_events))
         .data(file_service);
