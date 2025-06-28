@@ -1,46 +1,59 @@
-use std::time::Instant;
+use std::sync::Arc;
+use std::path::PathBuf;
 
-use futures_util::StreamExt;
 use poem::{
-    get, handler,
+    get, post, put, handler,
     listener::TcpListener,
-    web::{
-        sse::{Event, SSE},
-        Json,
-    },
-    Route, Server,
+    web::{Json, Data},
+    Route, Server, EndpointExt, 
 };
-use serde_json::json;
-use tokio::time::Duration;
+use tokio::sync::RwLock;
+use tracing_subscriber;
+
+mod api;
+mod models;
+mod services;
+mod utils;
+
+use services::FileService;
+use api::{path, books, events};
 
 #[handler]
-fn index() -> Json<serde_json::Value> {
-    Json(
-        json!({
-            "message": "Hello, world!"
-        })
-    )
-}
-
-#[handler]
-fn event() -> SSE {
-    let now = Instant::now();
-    SSE::new(
-        tokio_stream::wrappers::IntervalStream::new(tokio::time::interval(Duration::from_secs(1)))
-            .map(move |_| Event::message(now.elapsed().as_secs().to_string())),
-    )
-    .keep_alive(Duration::from_secs(5))
+fn health_check() -> Json<serde_json::Value> {
+    Json(serde_json::json!({
+        "status": "healthy",
+        "service": "pixl-server"
+    }))
 }
 
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
+    // Initialize logging
     if std::env::var_os("RUST_LOG").is_none() {
-        unsafe { std::env::set_var("RUST_LOG", "poem=debug") };
+        unsafe { std::env::set_var("RUST_LOG", "poem=debug"); }
     }
     tracing_subscriber::fmt::init();
 
-    let app = Route::new().at("/", get(index)).at("/event", get(event));
-    Server::new(TcpListener::bind("0.0.0.0:3000"))
+    // Initialize services
+    let default_path = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
+    let file_service = Arc::new(RwLock::new(FileService::new(default_path)));
+
+    // Build routes
+    let app = Route::new()
+        .at("/", get(health_check))
+        .at("/path", get(path::get_path))
+        .at("/path", put(path::set_path))
+        .at("/books", get(books::list_books))
+        .at("/books", post(books::create_book))
+        .at("/books/:filename", get(books::get_book))
+        .at("/books/:filename/events", get(events::pixel_book_events))
+        .data(file_service);
+
+    // Start server
+    let listener = TcpListener::bind("0.0.0.0:3000");
+    println!("PIXL Server starting on http://0.0.0.0:3000");
+    
+    Server::new(listener)
         .run(app)
         .await
 }

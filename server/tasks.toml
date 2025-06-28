@@ -24,3 +24,15 @@ args = ["run"]
 [tasks.watch]
 command = "bacon"
 args = ["run"]
+
+[tasks.check]
+command = "cargo"
+args = ["check"]
+
+[tasks.clippy]
+command = "cargo"
+args = ["clippy", "--", "-D", "warnings"]
+
+[tasks.fmt]
+command = "cargo"
+args = ["fmt"]
