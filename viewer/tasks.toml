@@ -16,3 +16,11 @@ dependencies = ["clean"]
 command = "cargo"
 args = ["test"]
 dependencies = ["clean"]
+
+[tasks.run]
+command = "cargo"
+args = ["run"]
+
+[tasks.watch]
+command = "bacon"
+args = ["run"]

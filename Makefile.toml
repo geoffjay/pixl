@@ -36,3 +36,23 @@ dependencies = [
     "build",
     "test"
 ]
+
+[tasks.run-server]
+dependencies = [
+  { name = "run", path = "server/tasks.toml" },
+]
+
+[tasks.run-viewer]
+dependencies = [
+  { name = "run", path = "viewer/tasks.toml" },
+]
+
+[tasks.watch-server]
+dependencies = [
+  { name = "watch", path = "server/tasks.toml" },
+]
+
+[tasks.watch-viewer]
+dependencies = [
+  { name = "watch", path = "viewer/tasks.toml" },
+]
