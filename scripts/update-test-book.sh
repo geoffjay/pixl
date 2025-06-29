@@ -81,12 +81,11 @@ for i in {1..3}; do
     send_operation '{
         "operations": [
             {
-                "DrawPixel": {
-                    "frame": 0,
-                    "x": '$x',
-                    "y": '$y',
-                    "color": ['$r', '$g', '$b', 255]
-                }
+                "type": "draw_pixel",
+                "frame": 0,
+                "x": '$x',
+                "y": '$y',
+                "color": ['$r', '$g', '$b', 255]
             }
         ]
     }' "Random pixel at ($x,$y) with color ($r,$g,$b)"
@@ -105,13 +104,12 @@ b=$(random_color)
 send_operation '{
     "operations": [
         {
-            "DrawLine": {
-                "frame": 0,
-                "start": {"x": '$x1', "y": '$y1'},
-                "end": {"x": '$x2', "y": '$y2'},
-                "line_type": "Straight",
-                "color": ['$r', '$g', '$b', 255]
-            }
+            "type": "draw_line",
+            "frame": 0,
+            "start": {"x": '$x1', "y": '$y1'},
+            "end": {"x": '$x2', "y": '$y2'},
+            "line_type": "straight",
+            "color": ['$r', '$g', '$b', 255]
         }
     ]
 }' "Random line from ($x1,$y1) to ($x2,$y2)"
@@ -130,14 +128,13 @@ rect_b=$(random_color)
 send_operation '{
     "operations": [
         {
-            "DrawShape": {
-                "frame": 0,
-                "shape": "Rectangle",
-                "position": {"x": '$rect_x', "y": '$rect_y'},
-                "size": {"width": '$rect_w', "height": '$rect_h'},
-                "filled": false,
-                "color": ['$rect_r', '$rect_g', '$rect_b', 255]
-            }
+            "type": "draw_shape",
+            "frame": 0,
+            "shape": "rectangle",
+            "position": {"x": '$rect_x', "y": '$rect_y'},
+            "size": {"width": '$rect_w', "height": '$rect_h'},
+            "filled": false,
+            "color": ['$rect_r', '$rect_g', '$rect_b', 255]
         }
     ]
 }' "Random rectangle at ($rect_x,$rect_y)"
@@ -154,14 +151,13 @@ circ_b=$(random_color)
 send_operation '{
     "operations": [
         {
-            "DrawShape": {
-                "frame": 0,
-                "shape": "Circle",
-                "position": {"x": '$circ_x', "y": '$circ_y'},
-                "size": {"width": '$circ_size', "height": '$circ_size'},
-                "filled": true,
-                "color": ['$circ_r', '$circ_g', '$circ_b', 255]
-            }
+            "type": "draw_shape",
+            "frame": 0,
+            "shape": "circle",
+            "position": {"x": '$circ_x', "y": '$circ_y'},
+            "size": {"width": '$circ_size', "height": '$circ_size'},
+            "filled": true,
+            "color": ['$circ_r', '$circ_g', '$circ_b', 255]
         }
     ]
 }' "Random filled circle at ($circ_x,$circ_y)"
@@ -178,14 +174,13 @@ tri_b=$(random_color)
 send_operation '{
     "operations": [
         {
-            "DrawShape": {
-                "frame": 1,
-                "shape": "Triangle",
-                "position": {"x": '$tri_x', "y": '$tri_y'},
-                "size": {"width": '$tri_size', "height": '$tri_size'},
-                "filled": true,
-                "color": ['$tri_r', '$tri_g', '$tri_b', 255]
-            }
+            "type": "draw_shape",
+            "frame": 1,
+            "shape": "triangle",
+            "position": {"x": '$tri_x', "y": '$tri_y'},
+            "size": {"width": '$tri_size', "height": '$tri_size'},
+            "filled": true,
+            "color": ['$tri_r', '$tri_g', '$tri_b', 255]
         }
     ]
 }' "Random triangle on frame 1 at ($tri_x,$tri_y)"
@@ -201,28 +196,25 @@ multi_b=$(random_color)
 send_operation '{
     "operations": [
         {
-            "DrawPixel": {
-                "frame": 1,
-                "x": '$multi_x',
-                "y": '$multi_y',
-                "color": ['$multi_r', '$multi_g', '$multi_b', 255]
-            }
+            "type": "draw_pixel",
+            "frame": 1,
+            "x": '$multi_x',
+            "y": '$multi_y',
+            "color": ['$multi_r', '$multi_g', '$multi_b', 255]
         },
         {
-            "DrawPixel": {
-                "frame": 1,
-                "x": '$((multi_x + 1))',
-                "y": '$multi_y',
-                "color": ['$multi_r', '$multi_g', '$multi_b', 255]
-            }
+            "type": "draw_pixel",
+            "frame": 1,
+            "x": '$((multi_x + 1))',
+            "y": '$multi_y',
+            "color": ['$multi_r', '$multi_g', '$multi_b', 255]
         },
         {
-            "DrawPixel": {
-                "frame": 1,
-                "x": '$((multi_x + 2))',
-                "y": '$multi_y',
-                "color": ['$multi_r', '$multi_g', '$multi_b', 255]
-            }
+            "type": "draw_pixel",
+            "frame": 1,
+            "x": '$((multi_x + 2))',
+            "y": '$multi_y',
+            "color": ['$multi_r', '$multi_g', '$multi_b', 255]
         }
     ]
 }' "Three random colored pixels in a row"
@@ -233,12 +225,11 @@ echo "🔹 Test 6: Fill area on frame 2..."
 send_operation '{
     "operations": [
         {
-            "DrawPixel": {
-                "frame": 2,
-                "x": 12,
-                "y": 12,
-                "color": [0, 0, 0, 0]
-            }
+            "type": "draw_pixel",
+            "frame": 2,
+            "x": 12,
+            "y": 12,
+            "color": [0, 0, 0, 0]
         }
     ]
 }' "Clear a pixel for fill test"
@@ -248,12 +239,11 @@ sleep 0.2
 send_operation '{
     "operations": [
         {
-            "FillArea": {
-                "frame": 2,
-                "x": 12,
-                "y": 12,
-                "color": [128, 64, 192, 255]
-            }
+            "type": "fill_area",
+            "frame": 2,
+            "x": 12,
+            "y": 12,
+            "color": [128, 64, 192, 255]
         }
     ]
 }' "Purple fill from (12,12)"
@@ -271,12 +261,11 @@ for i in {0..5}; do
     send_operation '{
         "operations": [
             {
-                "DrawPixel": {
-                    "frame": 0,
-                    "x": '$x',
-                    "y": '$start_y',
-                    "color": ['$anim_r', '$anim_g', '$anim_b', 255]
-                }
+                "type": "draw_pixel",
+                "frame": 0,
+                "x": '$x',
+                "y": '$start_y',
+                "color": ['$anim_r', '$anim_g', '$anim_b', 255]
             }
         ]
     }' "Moving pixel to ($x, $start_y)"
@@ -289,12 +278,11 @@ for i in {0..5}; do
     send_operation '{
         "operations": [
             {
-                "DrawPixel": {
-                    "frame": 0,
-                    "x": '$x',
-                    "y": '$start_y',
-                    "color": [0, 0, 0, 0]
-                }
+                "type": "draw_pixel",
+                "frame": 0,
+                "x": '$x',
+                "y": '$start_y',
+                "color": [0, 0, 0, 0]
             }
         ]
     }' "Clearing pixel at ($x, $start_y)"
@@ -311,17 +299,16 @@ poly_b=$(random_color)
 send_operation '{
     "operations": [
         {
-            "DrawPolygon": {
-                "frame": 1,
-                "points": [
-                    {"x": '$poly_x', "y": '$poly_y'},
-                    {"x": '$((poly_x + 5))', "y": '$((poly_y - 2))'},
-                    {"x": '$((poly_x + 8))', "y": '$((poly_y + 3))'},
-                    {"x": '$((poly_x + 2))', "y": '$((poly_y + 5))'}
-                ],
-                "filled": true,
-                "color": ['$poly_r', '$poly_g', '$poly_b', 255]
-            }
+            "type": "draw_polygon",
+            "frame": 1,
+            "points": [
+                {"x": '$poly_x', "y": '$poly_y'},
+                {"x": '$((poly_x + 5))', "y": '$((poly_y - 2))'},
+                {"x": '$((poly_x + 8))', "y": '$((poly_y + 3))'},
+                {"x": '$((poly_x + 2))', "y": '$((poly_y + 5))'}
+            ],
+            "filled": true,
+            "color": ['$poly_r', '$poly_g', '$poly_b', 255]
         }
     ]
 }' "Random polygon on frame 1"

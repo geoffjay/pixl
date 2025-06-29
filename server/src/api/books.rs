@@ -92,6 +92,8 @@ pub async fn update_book(
     filename: Path<String>,
     request: Json<UpdatePixelBookRequest>,
 ) -> Result<Json<serde_json::Value>> {
+    println!("🚨 UPDATE_BOOK called for: {} with {} operations", filename.as_str(), request.operations.len());
+    
     if !validation::validate_filename(&filename) {
         return Err(Error::from_string(
             "Invalid filename",
@@ -110,13 +112,22 @@ pub async fn update_book(
         })?;
 
     // Apply drawing operations
+    println!("🎨 Applying {} drawing operations...", request.operations.len());
     let drawing_service = DrawingService::new();
     drawing_service.apply_operations(&mut book, request.operations.clone())
-        .map_err(|e| Error::from_string(e.to_string(), poem::http::StatusCode::BAD_REQUEST))?;
+        .map_err(|e| {
+            println!("❌ Drawing operation failed: {}", e);
+            Error::from_string(e.to_string(), poem::http::StatusCode::BAD_REQUEST)
+        })?;
 
     // Save the updated book
+    println!("💾 Saving pixel book to disk...");
     service.save_book(&book)
-        .map_err(|e| Error::from_string(e.to_string(), poem::http::StatusCode::INTERNAL_SERVER_ERROR))?;
+        .map_err(|e| {
+            println!("❌ Save failed: {}", e);
+            Error::from_string(e.to_string(), poem::http::StatusCode::INTERNAL_SERVER_ERROR)
+        })?;
+    println!("✅ Book saved successfully!");
 
     // Emit events for each drawing operation
     let event_svc = event_service.read().await;

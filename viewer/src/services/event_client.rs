@@ -4,6 +4,7 @@ use std::error::Error;
 use std::collections::VecDeque;
 use std::sync::Arc;
 use tokio::sync::Mutex;
+use futures_util::StreamExt;
 
 #[derive(Clone)]
 pub struct EventClient {
@@ -71,7 +72,7 @@ impl EventClient {
         while let Some(chunk) = stream.next().await {
             match chunk {
                 Ok(bytes) => {
-                    let text = String::from_utf8_lossy(&bytes);
+                    let text = String::from_utf8_lossy(&bytes).to_string();
                     buffer.push_str(&text);
                     
                     // Process complete SSE events

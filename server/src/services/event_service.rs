@@ -46,10 +46,15 @@ impl EventService {
             event_type,
         };
         
+        println!("📤 EventService: Emitting event for {}: {:?}", filename, event.event_type);
+        
         let mut events = self.events.write().await;
         events.entry(filename.to_string())
             .or_insert_with(Vec::new)
             .push(event);
+        
+        println!("📊 EventService: Total events for {}: {}", filename, 
+            events.get(filename).map(|v| v.len()).unwrap_or(0));
     }
     
     pub async fn get_recent_events(&self, filename: &str, since: DateTime<Utc>) -> Vec<PixelBookEvent> {
