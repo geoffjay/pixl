@@ -149,30 +149,8 @@ impl FileService {
             let mut pixel_data = vec![0u8; size as usize];
             file.read_exact(&mut pixel_data)?;
             
-            // Convert raw bytes to pixel matrix
-            let mut pixels = Vec::new();
-            for y in 0..height {
-                let mut row = Vec::new();
-                for x in 0..width {
-                    let idx = ((y as usize * width as usize + x as usize) * 4) as usize;
-                    if idx + 3 < pixel_data.len() {
-                        let pixel = Pixel::new(
-                            pixel_data[idx],
-                            pixel_data[idx + 1],
-                            pixel_data[idx + 2],
-                            pixel_data[idx + 3],
-                        );
-                        row.push(pixel);
-                    } else {
-                        return Err(PixelError::InvalidFormat { 
-                            details: "Incomplete pixel data".to_string() 
-                        });
-                    }
-                }
-                pixels.push(row);
-            }
-            
-            frames.push(Frame { index: i, pixels });
+            // Store raw pixel data directly
+            frames.push(Frame { index: i, pixels: pixel_data });
         }
         
         Ok(PixelBook {
@@ -216,11 +194,7 @@ impl FileService {
         
         // Write frame data
         for frame in &book.frames {
-            for row in &frame.pixels {
-                for pixel in row {
-                    file.write_all(&[pixel.r, pixel.g, pixel.b, pixel.a])?;
-                }
-            }
+            file.write_all(&frame.pixels)?;
         }
         
         file.flush()?;

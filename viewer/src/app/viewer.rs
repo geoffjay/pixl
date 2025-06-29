@@ -74,11 +74,19 @@ impl Viewer {
         // Ctrl+O for file open
         if InputHandler::is_ctrl_o_pressed(&self.window) {
             if self.state.is_connected {
-                self.open_file_dialog().await?;
+                // Only open dialog if we're not already in an error state
+                if self.state.last_error.is_none() {
+                    self.open_file_dialog().await?;
+                }
             } else {
                 println!("Cannot open file dialog: server not connected");
                 self.state.set_error("Server not connected".to_string());
             }
+        }
+        
+        // Press 'C' to clear errors
+        if self.window.is_key_down(minifb::Key::C) {
+            self.state.clear_error();
         }
         
         // Frame navigation
@@ -94,24 +102,33 @@ impl Viewer {
     }
     
     async fn open_file_dialog(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        // Prevent multiple simultaneous file dialog operations
+        if self.state.last_error.is_some() {
+            // Clear any existing error first
+            self.state.clear_error();
+        }
+        
         println!("Opening file dialog...");
         
         // First, get list of available books from server
         match self.api_client.list_books().await {
             Ok(books) => {
                 if books.is_empty() {
-                    self.state.set_error("No pixel books found on server".to_string());
+                    self.state.set_error("No pixel books found on server. Create one first using the test script.".to_string());
                     return Ok(());
                 }
                 
                 // For now, just load the first book as a placeholder
                 // In a real implementation, this would show a proper file selection dialog
                 if let Some(book_info) = books.first() {
+                    println!("Loading book: {}", book_info.filename);
                     self.load_book(&book_info.filename).await?;
                 }
             }
             Err(e) => {
-                self.state.set_error(format!("Failed to list books: {}", e));
+                let error_msg = format!("Failed to list books: {}", e);
+                println!("Error: {}", error_msg);
+                self.state.set_error(error_msg);
             }
         }
         
@@ -119,19 +136,23 @@ impl Viewer {
     }
     
     async fn load_book(&mut self, filename: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        println!("Attempting to load book: {}", filename);
+        
         match self.api_client.get_book(filename).await {
             Ok(book) => {
+                println!("Successfully loaded book: {} ({} frames, {}x{})", 
+                    book.filename, book.frames.len(), book.width, book.height);
                 self.state.set_book(book);
                 
                 // Start listening for real-time updates for this book
                 if let Err(e) = self.event_client.connect(filename).await {
                     println!("Warning: Could not connect to real-time updates: {}", e);
                 }
-                
-                println!("Loaded pixel book: {}", filename);
             }
             Err(e) => {
-                self.state.set_error(format!("Failed to load book: {}", e));
+                let error_msg = format!("Failed to load '{}': {}. Make sure the server is running and the file exists.", filename, e);
+                println!("Load error: {}", error_msg);
+                self.state.set_error(error_msg);
             }
         }
         
@@ -196,9 +217,18 @@ impl Viewer {
         
         // Show error message if any
         if let Some(error) = &self.state.last_error {
-            // In a real implementation, this would overlay the error on the screen
-            // For now, just print to console
-            println!("Error: {}", error);
+            // Show error in window title and console
+            let error_title = format!("PIXL Viewer - ERROR: {} (Press 'C' to clear)", error);
+            self.window.set_title(&error_title);
+            
+            // Don't spam the console with repeated errors
+            static mut LAST_ERROR: Option<String> = None;
+            unsafe {
+                if LAST_ERROR.as_ref() != Some(error) {
+                    println!("Error: {}", error);
+                    LAST_ERROR = Some(error.clone());
+                }
+            }
         }
     }
     

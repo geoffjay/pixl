@@ -60,16 +60,15 @@ impl DrawingService {
             });
         }
 
-        let frame = &mut book.frames[frame_idx];
         if x >= book.width || y >= book.height {
             return Err(PixelError::InvalidCoordinates {
                 x, y, width: book.width, height: book.height
             });
         }
 
-        if (y as usize) < frame.pixels.len() && (x as usize) < frame.pixels[y as usize].len() {
-            frame.pixels[y as usize][x as usize] = crate::models::Pixel::new(color[0], color[1], color[2], color[3]);
-        }
+        let frame = &mut book.frames[frame_idx];
+        let pixel = crate::models::Pixel::new(color[0], color[1], color[2], color[3]);
+        frame.set_pixel(x, y, book.width, pixel);
 
         Ok(())
     }
@@ -425,11 +424,10 @@ impl DrawingService {
         // Get target color without borrowing book
         let target_color = {
             let frame = &book.frames[frame_idx];
-            if (y as usize) >= frame.pixels.len() || (x as usize) >= frame.pixels[y as usize].len() {
-                return Ok(());
+            match frame.get_pixel(x, y, book.width) {
+                Some(pixel) => [pixel.r, pixel.g, pixel.b, pixel.a],
+                None => return Ok(()),
             }
-            let target_pixel = frame.pixels[y as usize][x as usize];
-            [target_pixel.r, target_pixel.g, target_pixel.b, target_pixel.a]
         };
 
         if target_color == color {
@@ -453,11 +451,10 @@ impl DrawingService {
             // Check current pixel color without borrowing book mutably
             let current_color = {
                 let frame = &book.frames[frame_idx];
-                if (cy as usize) >= frame.pixels.len() || (cx as usize) >= frame.pixels[cy as usize].len() {
-                    continue;
+                match frame.get_pixel(cx, cy, book.width) {
+                    Some(pixel) => [pixel.r, pixel.g, pixel.b, pixel.a],
+                    None => continue,
                 }
-                let current_pixel = frame.pixels[cy as usize][cx as usize];
-                [current_pixel.r, current_pixel.g, current_pixel.b, current_pixel.a]
             };
 
             if current_color != target_color {

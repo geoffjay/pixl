@@ -21,13 +21,41 @@ impl Pixel {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Frame {
     pub index: usize,
-    pub pixels: Vec<Vec<Pixel>>, // [y][x] indexing
+    pub pixels: Vec<u8>, // RGBA bytes: [r, g, b, a, r, g, b, a, ...]
 }
 
 impl Frame {
     pub fn new(index: usize, width: u16, height: u16) -> Self {
-        let pixels = vec![vec![Pixel::transparent(); width as usize]; height as usize];
+        let pixel_count = (width as usize) * (height as usize) * 4; // RGBA
+        let pixels = vec![0u8; pixel_count]; // Transparent pixels
         Self { index, pixels }
+    }
+    
+    pub fn get_pixel(&self, x: u16, y: u16, width: u16) -> Option<Pixel> {
+        let pixel_idx = (y as usize * width as usize + x as usize) * 4;
+        if pixel_idx + 3 < self.pixels.len() {
+            Some(Pixel::new(
+                self.pixels[pixel_idx],
+                self.pixels[pixel_idx + 1],
+                self.pixels[pixel_idx + 2],
+                self.pixels[pixel_idx + 3],
+            ))
+        } else {
+            None
+        }
+    }
+    
+    pub fn set_pixel(&mut self, x: u16, y: u16, width: u16, pixel: Pixel) -> bool {
+        let pixel_idx = (y as usize * width as usize + x as usize) * 4;
+        if pixel_idx + 3 < self.pixels.len() {
+            self.pixels[pixel_idx] = pixel.r;
+            self.pixels[pixel_idx + 1] = pixel.g;
+            self.pixels[pixel_idx + 2] = pixel.b;
+            self.pixels[pixel_idx + 3] = pixel.a;
+            true
+        } else {
+            false
+        }
     }
 }
 
