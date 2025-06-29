@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum DrawingOperation {
     #[serde(rename = "draw_pixel")]
@@ -47,19 +47,19 @@ pub enum DrawingOperation {
     },
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Point {
     pub x: u16,
     pub y: u16,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Size {
     pub width: u16,
     pub height: u16,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LineType {
     #[serde(rename = "straight")]
     Straight,
@@ -67,7 +67,7 @@ pub enum LineType {
     Curved,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ShapeType {
     #[serde(rename = "rectangle")]
     Rectangle,
@@ -79,7 +79,7 @@ pub enum ShapeType {
     Triangle,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdatePixelBookRequest {
     pub operations: Vec<DrawingOperation>,
 } 

@@ -13,6 +13,14 @@ impl Pixel {
         Self { r, g, b, a }
     }
     
+    pub fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        if bytes.len() >= 4 {
+            Some(Self::new(bytes[0], bytes[1], bytes[2], bytes[3]))
+        } else {
+            None
+        }
+    }
+    
     pub fn to_rgba32(&self) -> u32 {
         ((self.r as u32) << 16) | ((self.g as u32) << 8) | (self.b as u32)
     }
@@ -25,7 +33,23 @@ impl Pixel {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Frame {
     pub index: usize,
-    pub pixels: Vec<Vec<Pixel>>, // [y][x] indexing
+    pub pixels: Vec<u8>, // RGBA bytes: [r, g, b, a, r, g, b, a, ...]
+}
+
+impl Frame {
+    pub fn get_pixel(&self, x: u16, y: u16, width: u16) -> Option<Pixel> {
+        let pixel_idx = (y as usize * width as usize + x as usize) * 4;
+        if pixel_idx + 3 < self.pixels.len() {
+            Some(Pixel::new(
+                self.pixels[pixel_idx],
+                self.pixels[pixel_idx + 1],
+                self.pixels[pixel_idx + 2],
+                self.pixels[pixel_idx + 3],
+            ))
+        } else {
+            None
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

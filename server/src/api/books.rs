@@ -1,5 +1,5 @@
-use crate::models::{PixelBook, PixelBookInfo, CreatePixelBookRequest};
-use crate::services::FileService;
+use crate::models::{PixelBook, PixelBookInfo, CreatePixelBookRequest, UpdatePixelBookRequest};
+use crate::services::{FileService, DrawingService};
 use crate::utils::validation;
 use poem::{handler, web::{Json, Path}, Result, Error};
 use serde_json::json;
@@ -82,5 +82,44 @@ pub async fn create_book(
         "success": true,
         "filename": book.filename,
         "path": full_path.to_string_lossy()
+    })))
+}
+
+#[handler]
+pub async fn update_book(
+    file_service: poem::web::Data<&Arc<RwLock<FileService>>>,
+    filename: Path<String>,
+    request: Json<UpdatePixelBookRequest>,
+) -> Result<Json<serde_json::Value>> {
+    if !validation::validate_filename(&filename) {
+        return Err(Error::from_string(
+            "Invalid filename",
+            poem::http::StatusCode::BAD_REQUEST,
+        ));
+    }
+
+    let mut service = file_service.write().await;
+    
+    // Load the pixel book
+    let mut book = service.load_book(&filename)
+        .map_err(|e| match e {
+            crate::models::PixelError::FileNotFound { .. } => 
+                Error::from_string(e.to_string(), poem::http::StatusCode::NOT_FOUND),
+            _ => Error::from_string(e.to_string(), poem::http::StatusCode::INTERNAL_SERVER_ERROR),
+        })?;
+
+    // Apply drawing operations
+    let drawing_service = DrawingService::new();
+    drawing_service.apply_operations(&mut book, request.operations.clone())
+        .map_err(|e| Error::from_string(e.to_string(), poem::http::StatusCode::BAD_REQUEST))?;
+
+    // Save the updated book
+    service.save_book(&book)
+        .map_err(|e| Error::from_string(e.to_string(), poem::http::StatusCode::INTERNAL_SERVER_ERROR))?;
+
+    Ok(Json(json!({
+        "success": true,
+        "operations_applied": request.operations.len(),
+        "filename": filename.to_string()
     })))
 } 

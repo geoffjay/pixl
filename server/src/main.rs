@@ -15,7 +15,7 @@ mod models;
 mod services;
 mod utils;
 
-use services::FileService;
+use services::{FileService, DrawingService};
 use api::{path, books, events};
 
 #[handler]
@@ -43,7 +43,7 @@ async fn main() -> Result<(), std::io::Error> {
         .at("/", get(health_check))
         .at("/path", get(path::get_path).put(path::set_path))
         .at("/books", get(books::list_books).post(books::create_book))
-        .at("/books/:filename", get(books::get_book))
+        .at("/books/:filename", get(books::get_book).put(books::update_book))
         .at("/books/:filename/events", get(events::pixel_book_events))
         .data(file_service);
 

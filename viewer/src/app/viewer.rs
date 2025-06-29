@@ -1,7 +1,7 @@
 use minifb::{Key, Window, WindowOptions};
 use crate::models::PixelBook;
 use crate::rendering::Renderer;
-use crate::services::ApiClient;
+use crate::services::{ApiClient, EventClient, FileDialogService};
 use crate::app::{AppState, InputHandler};
 use std::time::Duration;
 
@@ -12,6 +12,8 @@ pub struct Viewer {
     window: Window,
     renderer: Renderer,
     api_client: ApiClient,
+    event_client: EventClient,
+    file_dialog: FileDialogService,
     state: AppState,
 }
 
@@ -28,12 +30,16 @@ impl Viewer {
         
         let renderer = Renderer::new(WINDOW_WIDTH, WINDOW_HEIGHT);
         let api_client = ApiClient::new("http://localhost:3000".to_string());
+        let event_client = EventClient::new("http://localhost:3000".to_string());
+        let file_dialog = FileDialogService::new(api_client.clone());
         let state = AppState::new();
         
         Ok(Self {
             window,
             renderer,
             api_client,
+            event_client,
+            file_dialog,
             state,
         })
     }
@@ -54,6 +60,7 @@ impl Viewer {
         
         while self.window.is_open() && !self.window.is_key_down(Key::Escape) {
             self.handle_input().await?;
+            self.handle_real_time_updates().await?;
             self.render();
             
             let buffer = self.renderer.get_buffer();
@@ -64,13 +71,13 @@ impl Viewer {
     }
     
     async fn handle_input(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        // Ctrl+O for file open (placeholder for Phase 3)
+        // Ctrl+O for file open
         if InputHandler::is_ctrl_o_pressed(&self.window) {
             if self.state.is_connected {
-                println!("File dialog will be implemented in Phase 3");
-                // TODO: Implement file dialog in Phase 3
+                self.open_file_dialog().await?;
             } else {
                 println!("Cannot open file dialog: server not connected");
+                self.state.set_error("Server not connected".to_string());
             }
         }
         
@@ -81,6 +88,80 @@ impl Viewer {
         
         if InputHandler::is_right_arrow_pressed(&self.window) {
             self.state.next_frame();
+        }
+        
+        Ok(())
+    }
+    
+    async fn open_file_dialog(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        println!("Opening file dialog...");
+        
+        // First, get list of available books from server
+        match self.api_client.list_books().await {
+            Ok(books) => {
+                if books.is_empty() {
+                    self.state.set_error("No pixel books found on server".to_string());
+                    return Ok(());
+                }
+                
+                // For now, just load the first book as a placeholder
+                // In a real implementation, this would show a proper file selection dialog
+                if let Some(book_info) = books.first() {
+                    self.load_book(&book_info.filename).await?;
+                }
+            }
+            Err(e) => {
+                self.state.set_error(format!("Failed to list books: {}", e));
+            }
+        }
+        
+        Ok(())
+    }
+    
+    async fn load_book(&mut self, filename: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        match self.api_client.get_book(filename).await {
+            Ok(book) => {
+                self.state.set_book(book);
+                
+                // Start listening for real-time updates for this book
+                if let Err(e) = self.event_client.connect(filename).await {
+                    println!("Warning: Could not connect to real-time updates: {}", e);
+                }
+                
+                println!("Loaded pixel book: {}", filename);
+            }
+            Err(e) => {
+                self.state.set_error(format!("Failed to load book: {}", e));
+            }
+        }
+        
+        Ok(())
+    }
+    
+    async fn handle_real_time_updates(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        // Poll for real-time updates
+        if let Some(events) = self.event_client.poll_events().await? {
+            for event in events {
+                match &event.event_type {
+                    crate::models::EventType::DrawingOperation { .. } => {
+                        // Reload the current book to get the latest changes
+                        if let Some(book) = &self.state.current_book {
+                            let filename = book.filename.clone();
+                            self.load_book(&filename).await?;
+                        }
+                    }
+                    crate::models::EventType::BookSaved => {
+                        println!("Book saved remotely");
+                    }
+                    crate::models::EventType::FrameChanged { frame_index } => {
+                        self.state.set_frame(*frame_index);
+                    }
+                    crate::models::EventType::Heartbeat => {
+                        // Keep connection alive
+                    }
+                    _ => {}
+                }
+            }
         }
         
         Ok(())
@@ -112,6 +193,13 @@ impl Viewer {
             };
             self.window.set_title(title);
         }
+        
+        // Show error message if any
+        if let Some(error) = &self.state.last_error {
+            // In a real implementation, this would overlay the error on the screen
+            // For now, just print to console
+            println!("Error: {}", error);
+        }
     }
     
     // For testing purposes - load a demo pixel book
@@ -124,15 +212,7 @@ impl Viewer {
         match self.api_client.list_books().await {
             Ok(books) => {
                 if let Some(book_info) = books.first() {
-                    match self.api_client.get_book(&book_info.filename).await {
-                        Ok(book) => {
-                            self.state.set_book(book);
-                            println!("Loaded demo book: {}", book_info.filename);
-                        }
-                        Err(e) => {
-                            self.state.set_error(format!("Failed to load book: {}", e));
-                        }
-                    }
+                    self.load_book(&book_info.filename).await?;
                 } else {
                     self.state.set_error("No pixel books found on server".to_string());
                 }

@@ -44,9 +44,12 @@ impl Renderer {
             self.height,
         );
         
-        for (y, row) in frame.pixels.iter().enumerate() {
-            for (x, pixel) in row.iter().enumerate() {
-                self.render_pixel(x as u16, y as u16, pixel, scale, offset_x, offset_y);
+        // Iterate through each pixel in the image
+        for y in 0..image_height {
+            for x in 0..image_width {
+                if let Some(pixel) = frame.get_pixel(x, y, image_width) {
+                    self.render_pixel(x, y, &pixel, scale, offset_x, offset_y);
+                }
             }
         }
     }
