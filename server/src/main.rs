@@ -15,7 +15,7 @@ mod models;
 mod services;
 mod utils;
 
-use services::{FileService, DrawingService};
+use services::{FileService, DrawingService, EventService};
 use api::{path, books, events};
 
 #[handler]
@@ -37,6 +37,7 @@ async fn main() -> Result<(), std::io::Error> {
     // Initialize services
     let default_path = dirs::home_dir().unwrap_or_else(|| PathBuf::from("."));
     let file_service = Arc::new(RwLock::new(FileService::new(default_path)));
+    let event_service = Arc::new(RwLock::new(EventService::new()));
 
     // Build routes
     let app = Route::new()
@@ -45,7 +46,8 @@ async fn main() -> Result<(), std::io::Error> {
         .at("/books", get(books::list_books).post(books::create_book))
         .at("/books/:filename", get(books::get_book).put(books::update_book))
         .at("/books/:filename/events", get(events::pixel_book_events))
-        .data(file_service);
+        .data(file_service)
+        .data(event_service);
 
     // Start server
     let listener = TcpListener::bind("0.0.0.0:3000");

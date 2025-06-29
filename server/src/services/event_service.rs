@@ -23,6 +23,8 @@ pub enum EventType {
     BookLoaded,
     #[serde(rename = "frame_changed")]
     FrameChanged { frame_index: usize },
+    #[serde(rename = "heartbeat")]
+    Heartbeat,
 }
 
 pub struct EventService {

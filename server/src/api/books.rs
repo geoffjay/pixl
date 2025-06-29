@@ -1,5 +1,5 @@
 use crate::models::{PixelBook, PixelBookInfo, CreatePixelBookRequest, UpdatePixelBookRequest};
-use crate::services::{FileService, DrawingService};
+use crate::services::{FileService, DrawingService, EventService};
 use crate::utils::validation;
 use poem::{handler, web::{Json, Path}, Result, Error};
 use serde_json::json;
@@ -88,6 +88,7 @@ pub async fn create_book(
 #[handler]
 pub async fn update_book(
     file_service: poem::web::Data<&Arc<RwLock<FileService>>>,
+    event_service: poem::web::Data<&Arc<RwLock<EventService>>>,
     filename: Path<String>,
     request: Json<UpdatePixelBookRequest>,
 ) -> Result<Json<serde_json::Value>> {
@@ -116,6 +117,17 @@ pub async fn update_book(
     // Save the updated book
     service.save_book(&book)
         .map_err(|e| Error::from_string(e.to_string(), poem::http::StatusCode::INTERNAL_SERVER_ERROR))?;
+
+    // Emit events for each drawing operation
+    let event_svc = event_service.read().await;
+    for operation in &request.operations {
+        println!("🎨 Emitting drawing operation event for: {}", filename.as_str());
+        event_svc.on_drawing_operation(&filename, operation.clone()).await;
+    }
+    
+    // Emit book saved event
+    println!("💾 Emitting book saved event for: {}", filename.as_str());
+    event_svc.on_book_saved(&filename).await;
 
     Ok(Json(json!({
         "success": true,
