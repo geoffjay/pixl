@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["Role"],"struct":["Prompt","PromptArgument","PromptGetResponse","PromptMessage","PromptsListRequest","PromptsListResponse"]};

@@ -1,7 +1,7 @@
-use crate::models::{PixelBook, PixelBookInfo, CreatePixelBookRequest, UpdatePixelBookRequest};
+use crate::models::{PixelBook, PixelBookInfo, CreatePixelBookRequest, UpdatePixelBookRequest, PixelError};
 use crate::services::{FileService, DrawingService, EventService};
 use crate::utils::validation;
-use poem::{handler, web::{Json, Path}, Result, Error};
+use poem::{handler, web::{Json, Path}, Result, Error, http::StatusCode};
 use serde_json::json;
 use std::sync::Arc;
 use tokio::sync::RwLock;
@@ -145,4 +145,6 @@ pub async fn update_book(
         "operations_applied": request.operations.len(),
         "filename": filename.to_string()
     })))
-} 
+}
+
+ 

@@ -3,9 +3,11 @@ use crate::services::EventService;
 use poem::{Result, Error};
 use std::time::Duration;
 use tokio::time::interval;
-use chrono::{DateTime, Utc};
+use chrono::Utc;
 use std::sync::Arc;
 use tokio::sync::RwLock;
+use poem::{web::Data, Response};
+use futures::stream::Stream;
 
 #[handler]
 pub async fn pixel_book_events(

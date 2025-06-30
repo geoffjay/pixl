@@ -1,8 +1,7 @@
-use minifb::{Key, Window, WindowOptions};
-use crate::models::PixelBook;
+use crate::app::{AppState, InputHandler};
 use crate::rendering::Renderer;
 use crate::services::{ApiClient, EventClient, FileDialogService};
-use crate::app::{AppState, InputHandler};
+use minifb::{Window, Key, WindowOptions};
 use std::time::Duration;
 
 const WINDOW_WIDTH: usize = 512;
@@ -253,5 +252,19 @@ impl Viewer {
         }
         
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn test_basic_compilation() {
+        // Basic compilation test - ensure all types compile
+        let _api_client = crate::services::ApiClient::new("http://localhost:3000".to_string());
+        let _event_client = crate::services::EventClient::new("http://localhost:3000".to_string());
+        
+        // Test that these types exist and can be instantiated
+        assert!(true);
     }
 } 

@@ -1,3 +1,6 @@
+[config]
+default_to_workspace = false
+
 [tasks.format]
 command = "echo"
 args = ["Formatting complete"]
@@ -7,28 +10,47 @@ dependencies = [
 ]
 
 [tasks.clean]
-command = "echo"
-args = ["Cleaning complete"]
-dependencies = [
-  { name = "clean", path = "server/tasks.toml" },
-  { name = "clean", path = "viewer/tasks.toml" },
-]
+dependencies = ["clean-server", "clean-viewer", "clean-mcp"]
+
+[tasks.clean-server]
+command = "cargo"
+args = ["make", "--cwd", "server", "--makefile", "tasks.toml", "clean"]
+
+[tasks.clean-viewer]
+command = "cargo"
+args = ["make", "--cwd", "viewer", "--makefile", "tasks.toml", "clean"]
+
+[tasks.clean-mcp]
+command = "cargo"
+args = ["clean"]
+cwd = "mcp"
 
 [tasks.build]
-command = "echo"
-args = ["Building complete"]
-dependencies = [
-  { name = "build", path = "server/tasks.toml" },
-  { name = "build", path = "viewer/tasks.toml" },
-]
+dependencies = ["build-server", "build-viewer", "build-mcp"]
+
+[tasks.build-server]
+command = "cargo"
+args = ["make", "--cwd", "server", "--makefile", "tasks.toml", "build"]
+
+[tasks.build-viewer]
+command = "cargo"
+args = ["make", "--cwd", "viewer", "--makefile", "tasks.toml", "build"]
+
+[tasks.build-mcp]
+command = "cargo"
+args = ["build", "--release"]
+cwd = "mcp"
 
 [tasks.test]
-command = "echo"
-args = ["Testing complete"]
-dependencies = [
-  { name = "test", path = "server/tasks.toml" },
-  { name = "test", path = "viewer/tasks.toml" },
-]
+dependencies = ["test-server", "test-viewer"]
+
+[tasks.test-server]
+command = "cargo"
+args = ["make", "--cwd", "server", "--makefile", "tasks.toml", "test"]
+
+[tasks.test-viewer]
+command = "cargo"
+args = ["make", "--cwd", "viewer", "--makefile", "tasks.toml", "test"]
 
 [tasks.full-build]
 dependencies = [
@@ -38,14 +60,17 @@ dependencies = [
 ]
 
 [tasks.run-server]
-dependencies = [
-  { name = "run", path = "server/tasks.toml" },
-]
+command = "cargo"
+args = ["make", "--cwd", "server", "--makefile", "tasks.toml", "run"]
 
 [tasks.run-viewer]
-dependencies = [
-  { name = "run", path = "viewer/tasks.toml" },
-]
+command = "cargo"
+args = ["make", "--cwd", "viewer", "--makefile", "tasks.toml", "run"]
+
+[tasks.run-mcp]
+command = "cargo"
+args = ["run"]
+cwd = "mcp"
 
 [tasks.watch-server]
 dependencies = [

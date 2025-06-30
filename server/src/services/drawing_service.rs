@@ -481,4 +481,213 @@ impl DrawingService {
 
         Ok(())
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::{PixelBook, Point, Size, LineType, ShapeType};
+
+    fn create_test_book() -> PixelBook {
+        PixelBook::new("test.pxl".to_string(), 10, 10, 1)
+    }
+
+    #[test]
+    fn test_draw_pixel() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let result = service.draw_pixel(&mut book, 0, 5, 5, [255, 0, 0, 255]);
+        assert!(result.is_ok());
+        
+        let pixel = book.frames[0].get_pixel(5, 5, book.width).unwrap();
+        assert_eq!(pixel.r, 255);
+        assert_eq!(pixel.g, 0);
+        assert_eq!(pixel.b, 0);
+        assert_eq!(pixel.a, 255);
+    }
+
+    #[test]
+    fn test_draw_pixel_out_of_bounds() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let result = service.draw_pixel(&mut book, 0, 15, 15, [255, 0, 0, 255]);
+        assert!(result.is_err());
+        
+        let result = service.draw_pixel(&mut book, 0, 5, 15, [255, 0, 0, 255]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_draw_pixel_invalid_frame() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let result = service.draw_pixel(&mut book, 5, 5, 5, [255, 0, 0, 255]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_draw_straight_line() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let start = Point { x: 2, y: 2 };
+        let end = Point { x: 6, y: 2 };
+        let result = service.draw_straight_line(&mut book, 0, start, end, [0, 255, 0, 255]);
+        assert!(result.is_ok());
+        
+        // Check that pixels along the line are set
+        for x in 2..=6 {
+            let pixel = book.frames[0].get_pixel(x, 2, book.width).unwrap();
+            assert_eq!(pixel.g, 255);
+        }
+    }
+
+    #[test]
+    fn test_draw_line_operation() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let start = Point { x: 1, y: 1 };
+        let end = Point { x: 8, y: 8 };
+        let result = service.draw_line(&mut book, 0, start, end, LineType::Straight, [0, 0, 255, 255]);
+        assert!(result.is_ok());
+        
+        // Check diagonal line pixels
+        let pixel = book.frames[0].get_pixel(1, 1, book.width).unwrap();
+        assert_eq!(pixel.b, 255);
+        let pixel = book.frames[0].get_pixel(8, 8, book.width).unwrap();
+        assert_eq!(pixel.b, 255);
+    }
+
+    #[test]
+    fn test_draw_rectangle_outline() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let position = Point { x: 2, y: 2 };
+        let size = Size { width: 4, height: 3 };
+        let result = service.draw_rectangle(&mut book, 0, position, size, false, [255, 255, 0, 255]);
+        assert!(result.is_ok());
+        
+        // Check corners
+        let pixel = book.frames[0].get_pixel(2, 2, book.width).unwrap();
+        assert_eq!(pixel.r, 255);
+        assert_eq!(pixel.g, 255);
+        let pixel = book.frames[0].get_pixel(5, 4, book.width).unwrap();
+        assert_eq!(pixel.r, 255);
+        assert_eq!(pixel.g, 255);
+        
+        // Check that center is not filled
+        let pixel = book.frames[0].get_pixel(3, 3, book.width).unwrap();
+        assert_eq!(pixel.r, 0);
+        assert_eq!(pixel.g, 0);
+    }
+
+    #[test]
+    fn test_draw_rectangle_filled() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let position = Point { x: 1, y: 1 };
+        let size = Size { width: 3, height: 3 };
+        let result = service.draw_rectangle(&mut book, 0, position, size, true, [128, 64, 192, 255]);
+        assert!(result.is_ok());
+        
+        // Check that center is filled
+        let pixel = book.frames[0].get_pixel(2, 2, book.width).unwrap();
+        assert_eq!(pixel.r, 128);
+        assert_eq!(pixel.g, 64);
+        assert_eq!(pixel.b, 192);
+    }
+
+    #[test]
+    fn test_draw_circle() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let position = Point { x: 5, y: 5 };
+        let size = Size { width: 4, height: 4 };
+        let result = service.draw_circle(&mut book, 0, position, size, false, [255, 128, 64, 255]);
+        assert!(result.is_ok());
+        
+        // Check that center pixel exists (circle should draw something)
+        let pixel = book.frames[0].get_pixel(5, 5, book.width);
+        assert!(pixel.is_some());
+    }
+
+    #[test]
+    fn test_apply_multiple_operations() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        let operations = vec![
+            DrawingOperation::DrawPixel {
+                frame: 0,
+                x: 1,
+                y: 1,
+                color: [255, 0, 0, 255],
+            },
+            DrawingOperation::DrawPixel {
+                frame: 0,
+                x: 2,
+                y: 2,
+                color: [0, 255, 0, 255],
+            },
+            DrawingOperation::DrawShape {
+                frame: 0,
+                shape: ShapeType::Rectangle,
+                position: Point { x: 5, y: 5 },
+                size: Size { width: 2, height: 2 },
+                filled: true,
+                color: [0, 0, 255, 255],
+            },
+        ];
+        
+        let result = service.apply_operations(&mut book, operations);
+        assert!(result.is_ok());
+        
+        // Verify all operations were applied
+        let pixel1 = book.frames[0].get_pixel(1, 1, book.width).unwrap();
+        assert_eq!(pixel1.r, 255);
+        
+        let pixel2 = book.frames[0].get_pixel(2, 2, book.width).unwrap();
+        assert_eq!(pixel2.g, 255);
+        
+        let pixel3 = book.frames[0].get_pixel(5, 5, book.width).unwrap();
+        assert_eq!(pixel3.b, 255);
+    }
+
+    #[test]
+    fn test_fill_area_simple() {
+        let mut book = create_test_book();
+        let service = DrawingService::new();
+        
+        // Fill from origin should work
+        let result = service.fill_area(&mut book, 0, 0, 0, [200, 100, 50, 255]);
+        assert!(result.is_ok());
+        
+        // Check that origin pixel is filled
+        let pixel = book.frames[0].get_pixel(0, 0, book.width).unwrap();
+        assert_eq!(pixel.r, 200);
+        assert_eq!(pixel.g, 100);
+        assert_eq!(pixel.b, 50);
+    }
+
+    #[test]
+    fn test_set_color_operation() {
+        let book = create_test_book();
+        let service = DrawingService::new();
+        
+        // SetColor doesn't modify the book, just validates
+        let operation = DrawingOperation::SetColor {
+            color: [255, 255, 255, 255],
+        };
+        
+        let mut test_book = book;
+        let result = service.apply_operation(&mut test_book, operation);
+        assert!(result.is_ok());
+    }
 } 

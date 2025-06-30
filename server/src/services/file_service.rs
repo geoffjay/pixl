@@ -1,7 +1,7 @@
-use crate::models::{PixelBook, Pixel, Frame, PixelBookInfo, Result, PixelError};
+use crate::models::{PixelBook, Frame, PixelBookInfo, Result, PixelError};
 use std::fs::{File, OpenOptions, read_dir};
-use std::io::{Read, Write, Seek, SeekFrom, BufReader, BufWriter};
 use std::path::{Path, PathBuf};
+use std::io::{Read, Write, Seek, SeekFrom, BufWriter};
 use chrono::{DateTime, Utc};
 
 const MAGIC_NUMBER: u32 = 0x504958; // "PIX"
@@ -222,7 +222,7 @@ mod tests {
     #[test]
     fn test_create_and_load_pixel_book() {
         let temp_dir = TempDir::new().unwrap();
-        let mut file_service = FileService::new(temp_dir.path().to_path_buf());
+        let file_service = FileService::new(temp_dir.path().to_path_buf());
         
         // Create a pixel book
         let book = file_service.create_book("test.pxl", 4, 4, 2).unwrap();
@@ -241,7 +241,7 @@ mod tests {
     #[test]
     fn test_list_books() {
         let temp_dir = TempDir::new().unwrap();
-        let mut file_service = FileService::new(temp_dir.path().to_path_buf());
+        let file_service = FileService::new(temp_dir.path().to_path_buf());
         
         // Create some pixel books
         file_service.create_book("book1.pxl", 8, 8, 1).unwrap();

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BatchRequest","BatchResponse","RequestId","Requests"],"struct":["Request","Response","RpcError"]};

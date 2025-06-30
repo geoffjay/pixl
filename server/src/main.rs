@@ -2,9 +2,9 @@ use std::sync::Arc;
 use std::path::PathBuf;
 
 use poem::{
-    get, post, put, handler,
+    get, handler,
     listener::TcpListener,
-    web::{Json, Data},
+    web::Json,
     Route, Server, EndpointExt, 
 };
 use tokio::sync::RwLock;
@@ -15,7 +15,7 @@ mod models;
 mod services;
 mod utils;
 
-use services::{FileService, DrawingService, EventService};
+use services::{FileService, EventService};
 use api::{path, books, events};
 
 #[handler]
