@@ -502,10 +502,13 @@ impl PixlMcpServer {
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    if std::env::var_os("RUST_LOG").is_none() {
-        std::env::set_var("RUST_LOG", "info");
+    // For MCP servers, we need to avoid writing logs to stdout since it's used for JSON-RPC
+    // Only enable logging if explicitly requested and redirect to stderr
+    if std::env::var("PIXL_MCP_DEBUG").is_ok() {
+        tracing_subscriber::fmt()
+            .with_writer(std::io::stderr)
+            .init();
     }
-    tracing_subscriber::fmt::init();
 
     let server = PixlMcpServer::new();
     

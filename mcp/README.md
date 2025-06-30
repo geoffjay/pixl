@@ -89,6 +89,8 @@ Add the following to your Claude Desktop configuration file:
 }
 ```
 
+For debugging, add `"PIXL_MCP_DEBUG": "1"` to the `env` section.
+
 ### ChatGPT (with MCP support)
 
 If using ChatGPT with MCP support, add the server configuration:
@@ -306,10 +308,12 @@ Common colors:
 
 ### Debug Mode
 
-Enable debug logging by setting the environment variable:
+The MCP server runs silently by default to avoid interfering with JSON-RPC communication. To enable debug logging (outputs to stderr), set:
 ```bash
-export RUST_LOG=debug
+export PIXL_MCP_DEBUG=1
 ```
+
+Then run your AI tool. Debug logs will appear in the terminal where you started the AI application.
 
 ## Real-time Viewing
 

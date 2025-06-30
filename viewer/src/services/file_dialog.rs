@@ -1,11 +1,10 @@
-// File dialog service will be implemented in Phase 3
+// File dialog service for selecting pixel books
 use crate::services::ApiClient;
 use std::error::Error;
 use rfd::AsyncFileDialog;
 use std::path::Path;
 
 pub struct FileDialogService {
-    #[allow(dead_code)]
     api_client: ApiClient,
 }
 
@@ -15,8 +14,34 @@ impl FileDialogService {
     }
     
     pub async fn show_open_dialog(&self) -> Result<Option<String>, Box<dyn Error + Send + Sync>> {
-        // TODO: Implement file dialog in Phase 3
-        Ok(None)
+        // Get the server's configured path to start the dialog in the right directory
+        let server_path = match self.api_client.get_path().await {
+            Ok(path) => path,
+            Err(e) => {
+                println!("Warning: Could not get server path, using current directory: {}", e);
+                ".".to_string()
+            }
+        };
+        
+        println!("Opening file dialog in path: {}", server_path);
+        
+        // Show the file dialog
+        let file = AsyncFileDialog::new()
+            .add_filter("Pixel Books", &["pxl"])
+            .add_filter("All Files", &["*"])
+            .set_title("Open Pixel Book")
+            .set_directory(&server_path)
+            .pick_file()
+            .await;
+        
+        if let Some(file_handle) = file {
+            let filename = file_handle.file_name();
+            println!("Selected file: {}", filename);
+            Ok(Some(filename))
+        } else {
+            println!("No file selected");
+            Ok(None)
+        }
     }
     
     pub async fn open_pixel_book_dialog(&self) -> Option<String> {

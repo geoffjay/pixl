@@ -101,31 +101,23 @@ impl Viewer {
     }
     
     async fn open_file_dialog(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        // Prevent multiple simultaneous file dialog operations
-        if self.state.last_error.is_some() {
-            // Clear any existing error first
-            self.state.clear_error();
-        }
+        // Clear any existing error first
+        self.state.clear_error();
         
         println!("Opening file dialog...");
         
-        // First, get list of available books from server
-        match self.api_client.list_books().await {
-            Ok(books) => {
-                if books.is_empty() {
-                    self.state.set_error("No pixel books found on server. Create one first using the test script.".to_string());
-                    return Ok(());
-                }
-                
-                // For now, just load the first book as a placeholder
-                // In a real implementation, this would show a proper file selection dialog
-                if let Some(book_info) = books.first() {
-                    println!("Loading book: {}", book_info.filename);
-                    self.load_book(&book_info.filename).await?;
-                }
+        // Show the file dialog to let the user select a pixel book
+        match self.file_dialog.show_open_dialog().await {
+            Ok(Some(filename)) => {
+                println!("User selected file: {}", filename);
+                self.load_book(&filename).await?;
+            }
+            Ok(None) => {
+                println!("User cancelled file selection");
+                // No error - user just cancelled
             }
             Err(e) => {
-                let error_msg = format!("Failed to list books: {}", e);
+                let error_msg = format!("File dialog error: {}", e);
                 println!("Error: {}", error_msg);
                 self.state.set_error(error_msg);
             }
