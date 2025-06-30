@@ -86,23 +86,13 @@ cargo run
 
 #### File Operations
 - **Ctrl+O** - Open file dialog to load pixel books
-- **Ctrl+S** - Save current pixel book
 
 #### Navigation
-- **Arrow Keys / WASD** - Navigate between frames
-- **Page Up/Down** - Jump multiple frames
-
-#### Drawing
-- **Left Click** - Draw pixels with selected tool
-- **Right Click** - Erase pixels
-- **Mouse Wheel** - Zoom in/out
-- **Middle Click + Drag** - Pan canvas
+- **Arrow Keys** - Navigate between frames
 
 #### Interface
-- **H / F1** - Show/hide help
-- **I** - Show/hide information panel
 - **C** - Clear error messages
-- **Esc / Q** - Quit application
+- **Esc** - Quit application
 
 ### API Usage
 
@@ -267,7 +257,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Built with [Rust](https://www.rust-lang.org/) for performance and safety
-- UI powered by [egui](https://github.com/emilk/egui) for native desktop experience
 - Server built with [poem](https://github.com/poem-web/poem) for high-performance HTTP handling
 - Async runtime provided by [tokio](https://tokio.rs/)
 
