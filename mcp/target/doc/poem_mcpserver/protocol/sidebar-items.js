@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["JSON_RPC_VERSION","MCP_PROTOCOL_VERSION"],"mod":["content","initialize","prompts","resources","rpc","tool"]};

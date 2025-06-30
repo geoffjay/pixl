@@ -1,9 +1,0 @@
-(function() {
-    var implementors = Object.fromEntries([["poem_mcpserver",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"poem_mcpserver/protocol/prompts/struct.PromptsListRequest.html\" title=\"struct poem_mcpserver::protocol::prompts::PromptsListRequest\">PromptsListRequest</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"poem_mcpserver/protocol/resources/struct.ResourcesListRequest.html\" title=\"struct poem_mcpserver::protocol::resources::ResourcesListRequest\">ResourcesListRequest</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"poem_mcpserver/protocol/tool/struct.ToolsListRequest.html\" title=\"struct poem_mcpserver::protocol::tool::ToolsListRequest\">ToolsListRequest</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.88.0/core/default/trait.Default.html\" title=\"trait core::default::Default\">Default</a> for <a class=\"struct\" href=\"poem_mcpserver/struct.McpServer.html\" title=\"struct poem_mcpserver::McpServer\">McpServer</a>&lt;<a class=\"struct\" href=\"poem_mcpserver/tool/struct.NoTools.html\" title=\"struct poem_mcpserver::tool::NoTools\">NoTools</a>&gt;"]]]]);
-    if (window.register_implementors) {
-        window.register_implementors(implementors);
-    } else {
-        window.pending_implementors = implementors;
-    }
-})()
-//{"start":57,"fragment_lengths":[1462]}

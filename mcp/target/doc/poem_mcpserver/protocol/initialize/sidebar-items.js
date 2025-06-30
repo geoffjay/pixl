@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["ClientCapabilities","ClientInfo","InitializeRequest","InitializeResponse","PromptsCapability","ResourcesCapability","ServerCapabilities","ServerInfo","ToolsCapability"]};
