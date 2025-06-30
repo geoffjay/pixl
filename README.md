@@ -53,7 +53,7 @@ PIXL is a sophisticated pixel art application featuring a REST API server and na
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/pixl.git
+git clone https://github.com/geoffjay/pixl.git
 cd pixl
 
 # Install cargo-make
